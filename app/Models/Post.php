@@ -1,0 +1,38 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Post extends Model
+{
+    /** @use HasFactory<\Database\Factories\PostFactory> */
+    use HasFactory;
+
+    protected $fillable = [
+        'author_id', 'title', 'category', 'body',
+        'is_published', 'is_pinned', 'published_at', 'views',
+    ];
+
+    protected $casts = [
+        'is_published' => 'boolean',
+        'is_pinned' => 'boolean',
+        'published_at' => 'datetime',
+    ];
+
+    public function author()
+    {
+        return $this->belongsTo(Author::class);
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class)->latest();
+    }
+
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'post_tag');
+    }
+}
