@@ -16,6 +16,7 @@
                     <a href="{{ route('posts.index') }}" class="hover:text-white">Posts</a>
                     @auth
                         @if (Auth::user()->author)
+                            <a href="{{ route('posts.drafts') }}" class="hover:text-white">My drafts</a>
                             <a href="{{ route('posts.create') }}" class="hover:text-white">New post</a>
                         @endif
                         <form method="POST" action="{{ route('logout') }}" class="inline">

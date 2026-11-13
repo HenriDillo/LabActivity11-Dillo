@@ -42,7 +42,32 @@ class PostController extends Controller
     {
         $tags = Tag::query()->orderBy('name')->get();
 
-        return view('posts.create', compact('tags'));
+        return view('posts.create', ['post' => null, 'tags' => $tags]);
+    }
+
+    public function drafts()
+    {
+        $author = Auth::user()->author;
+
+        abort_unless($author, 403);
+
+        $posts = $author->posts()
+            ->with('tags')
+            ->where('is_published', false)
+            ->latest('updated_at')
+            ->paginate(self::PER_PAGE);
+
+        return view('posts.drafts', compact('posts'));
+    }
+
+    public function edit(Post $post)
+    {
+        $this->authorizeDraftOwner($post);
+
+        $post->load('tags');
+        $tags = Tag::query()->orderBy('name')->get();
+
+        return view('posts.create', compact('post', 'tags'));
     }
 
     public function store(StorePostRequest $request)
@@ -61,7 +86,29 @@ class PostController extends Controller
         $post->tags()->sync($tagIds);
 
         if (! $isPublished) {
-            return redirect()->route('posts.index')->with('success', 'Draft saved successfully.');
+            return redirect()->route('posts.drafts')->with('success', 'Draft saved successfully.');
+        }
+
+        return redirect()->route('posts.show', $post)->with('success', 'Post published successfully.');
+    }
+
+    public function update(StorePostRequest $request, Post $post)
+    {
+        $this->authorizeDraftOwner($post);
+
+        $validated = $request->validated();
+        $tagIds = $validated['tags'];
+        unset($validated['tags']);
+
+        $isPublished = (bool) $validated['is_published'];
+        $validated['is_pinned'] = false;
+        $validated['published_at'] = $isPublished ? now() : null;
+
+        $post->update($validated);
+        $post->tags()->sync($tagIds);
+
+        if (! $isPublished) {
+            return redirect()->route('posts.drafts')->with('success', 'Draft updated successfully.');
         }
 
         return redirect()->route('posts.show', $post)->with('success', 'Post published successfully.');
@@ -77,5 +124,12 @@ class PostController extends Controller
         $post->load(['author', 'tags', 'comments.user']);
 
         return view('posts.show', compact('post'));
+    }
+
+    private function authorizeDraftOwner(Post $post): void
+    {
+        $author = Auth::user()->author;
+
+        abort_unless($author && ! $post->is_published && $post->author_id === $author->id, 404);
     }
 }

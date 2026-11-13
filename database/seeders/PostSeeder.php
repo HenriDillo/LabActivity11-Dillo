@@ -16,11 +16,12 @@ class PostSeeder extends Seeder
             ->sequence(fn () => ['author_id' => $authors->random()->id])
             ->create();
 
-        Post::factory()->count(10)->draft()
+        $kagawad = $authors->firstWhere('email', 'kagawad.dillo@bulletin.test');
+
+        Post::factory()->draft()->create(['author_id' => $kagawad->id]);
+        Post::factory()->count(9)->draft()
             ->sequence(fn () => ['author_id' => $authors->random()->id])
             ->create();
-
-        $kagawad = $authors->firstWhere('email', 'kagawad.dillo@bulletin.test');
 
         $pinnedPost = Post::query()->create([
             'author_id' => $kagawad->id,

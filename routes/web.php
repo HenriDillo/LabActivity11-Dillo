@@ -16,8 +16,11 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+    Route::get('/posts/drafts', [PostController::class, 'drafts'])->name('posts.drafts');
     Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
+    Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
+    Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
     Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
 });
 

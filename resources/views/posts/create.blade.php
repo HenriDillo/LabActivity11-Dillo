@@ -1,11 +1,16 @@
 @extends('layouts.app')
 
-@section('title', 'Create Post')
+@section('title', $post ? 'Edit Draft' : 'Create Post')
 
 @section('content')
     <div class="mx-auto max-w-3xl">
         <div class="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
-            <h1 class="mb-6 text-2xl font-bold text-stone-900">Create a new post</h1>
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold text-stone-900">{{ $post ? 'Edit draft' : 'Create a new post' }}</h1>
+                @if ($post)
+                    <a href="{{ route('posts.drafts') }}" class="mt-2 inline-block text-sm text-emerald-700 hover:underline">&larr; Back to my drafts</a>
+                @endif
+            </div>
 
             @if ($errors->any())
                 <div class="mb-4 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
@@ -18,12 +23,15 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('posts.store') }}" class="space-y-5">
+            <form method="POST" action="{{ $post ? route('posts.update', $post) : route('posts.store') }}" class="space-y-5">
                 @csrf
+                @if ($post)
+                    @method('PUT')
+                @endif
 
                 <div>
                     <label for="title" class="label">Title</label>
-                    <input id="title" name="title" type="text" maxlength="120" value="{{ old('title') }}" class="input" required>
+                    <input id="title" name="title" type="text" maxlength="120" value="{{ old('title', $post?->title) }}" class="input" required>
                     @error('title')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
@@ -34,7 +42,7 @@
                     <select id="category" name="category" class="input" required>
                         <option value="">Select a category</option>
                         @foreach (['Announcement', 'Health', 'Peace & Order', 'Ayuda', 'Sports & Youth'] as $category)
-                            <option value="{{ $category }}" @selected(old('category') === $category)>{{ $category }}</option>
+                            <option value="{{ $category }}" @selected(old('category', $post?->category) === $category)>{{ $category }}</option>
                         @endforeach
                     </select>
                     @error('category')
@@ -44,7 +52,7 @@
 
                 <div>
                     <label for="body" class="label">Body</label>
-                    <textarea id="body" name="body" rows="8" class="input" required>{{ old('body') }}</textarea>
+                    <textarea id="body" name="body" rows="8" class="input" required>{{ old('body', $post?->body) }}</textarea>
                     @error('body')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
@@ -55,7 +63,7 @@
                     <div class="grid gap-2 md:grid-cols-2">
                         @foreach ($tags as $tag)
                             <label class="flex items-center gap-2 rounded border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-700">
-                                <input type="checkbox" name="tags[]" value="{{ $tag->id }}" class="rounded border-stone-300 text-emerald-700 focus:ring-emerald-600" @checked(in_array((string) $tag->id, (array) old('tags', []), true))>
+                                <input type="checkbox" name="tags[]" value="{{ $tag->id }}" class="rounded border-stone-300 text-emerald-700 focus:ring-emerald-600" @checked(in_array((string) $tag->id, array_map('strval', (array) old('tags', $post?->tags->modelKeys() ?? [])), true))>
                                 {{ $tag->name }}
                             </label>
                             @error('tags.'.$loop->index)
@@ -71,7 +79,7 @@
                 <div>
                     <input type="hidden" name="is_published" value="0">
                     <label class="flex items-center gap-2 text-sm text-stone-700">
-                        <input type="checkbox" name="is_published" value="1" class="rounded border-stone-300 text-emerald-700 focus:ring-emerald-600" @checked((bool) old('is_published', true))>
+                        <input type="checkbox" name="is_published" value="1" class="rounded border-stone-300 text-emerald-700 focus:ring-emerald-600" @checked((bool) old('is_published', $post?->is_published ?? true))>
                         Publish this post
                     </label>
                     @error('is_published')
@@ -80,7 +88,7 @@
                 </div>
 
                 <div class="flex justify-end">
-                    <button type="submit" class="rounded bg-emerald-700 px-5 py-2.5 text-sm text-white hover:bg-emerald-800">Save post</button>
+                    <button type="submit" class="rounded bg-emerald-700 px-5 py-2.5 text-sm text-white hover:bg-emerald-800">{{ $post ? 'Save changes' : 'Save post' }}</button>
                 </div>
             </form>
         </div>

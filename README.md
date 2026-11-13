@@ -42,6 +42,7 @@ The seeders create 51 posts total: 40 generated published posts, 10 drafts, and 
 | `/login` | resident login page |
 | `/posts` | published posts with search, category and tag filters |
 | `/posts/create` | create a post (requires an author-linked user) |
+| `/posts/drafts` | private drafts for the signed-in author, with links to resume editing and publish |
 | `/posts/{post}` | single post detail page |
 | `/authors/{author}` | author profile and their posts |
 
